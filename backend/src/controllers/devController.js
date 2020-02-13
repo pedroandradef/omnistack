@@ -1,10 +1,10 @@
 const axios = require('axios');
 const Dev = require('../models/developer');
+const parseStringAsArray = require('../utils/parseStringAsArray')
 
 module.exports = {
-    async index(request, response){
+    async index(request, response) {
         const devs = await Dev.find();
-
         return response.json(devs);
     },
 
@@ -18,7 +18,7 @@ module.exports = {
 
             const { name = login, avatar_url, bio } = apiResponse.data;
 
-            const techsArray = techs.split(',').map(tech => tech.trim());
+            const techsArray = parseStringAsArray(techs);
 
             const location = {
                 type: 'Point',
@@ -37,5 +37,33 @@ module.exports = {
 
         return response.json(dev);
 
+    },
+
+    async update(request, response){
+        const{github_username, techs, latitude, longitude} = request.body;
+
+        const techsArray = parseStringAsArray(techs)
+
+        const location = {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+        };
+
+        const filter = {
+            techs: techs,
+            location: location,
+            techs: techsArray,
+        }
+
+       dev = await Dev.findOneAndUpdate(github_username,filter); //findOneAndUpdated retorna o documento atualizado
+
+       return response.json(dev)
+
+    }, 
+
+    async delete(request,response){
+        const dev = request.body;
+        let deleted = await Dev.findOneAndDelete(dev) //findOneAndDelete retorna o documento deletado
+        return response.json(deleted)
     }
 }
